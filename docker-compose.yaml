@@ -1,0 +1,80 @@
+version: '3.8'
+networks:
+  netbasic_net: 
+    driver: bridge   
+services:
+  web:
+    depends_on:  
+      - movies    
+      - review          
+    build: 
+      dockerfile: ./src/dockerfile
+      context: ./
+    ports:
+      - "5000:5000"
+    networks:
+      - netbasic_net        
+    restart: always
+    environment:
+      MOVIE_SERVICE_URI: http://movies:8181
+      REVIEW_SERVICE_URI: http://review:80
+  movies:
+    depends_on:  
+      - mongo     
+    build: 
+      dockerfile: ./../movie/src/dockerfile
+      context: ./../movie
+    ports:
+      - "8082:8181"
+    networks:
+      - netbasic_net        
+    restart: always
+    environment:
+      MONGODB_HOST: mongo
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: exemplo!  
+      MONGODB_PORT: 27017
+      MONGODB_DB: admin
+      MONGODB_URI: "mongodb://root:exemplo!@mongo-test:27017/"
+
+  mongo:
+    image: mongo
+    container_name: mongo-test
+    restart: always
+    environment:
+      ME_CONFIG_MONGODB_URL: "mongodb://root:exemplo!@mongo-test:27017/"
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: exemplo!      
+    ports:
+      - "27017:27017"
+    volumes:
+      - /datav:/data/db     
+    networks:
+      - netbasic_net    
+  review:
+    depends_on: 
+      - postgresql  
+    build: 
+      dockerfile: ./../review/src/Review.Web/dockerfile
+      context: ./../review
+    ports:
+      - "8084:80"
+    networks:
+      - netbasic_net        
+
+    restart: always
+  postgresql:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: Pg@123
+      MYSQL_ROOT_HOST: '%'  
+      POSTGRES_USER: pguser  
+      POSTGRESQL_DATABASE: dbbase     
+      MYSQL_ROOT_PASSWORD: root      
+    ports:
+      - "5432:5432"      
+    volumes:      
+     - /datav:/data/db     
+    networks:
+      - netbasic_net             

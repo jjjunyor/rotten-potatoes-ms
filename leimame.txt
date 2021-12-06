@@ -1,0 +1,3 @@
+Ir até o diretório rotten-potatoes-ms e executar "docker compose up -d"
+
+  
